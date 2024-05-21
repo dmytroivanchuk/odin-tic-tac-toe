@@ -103,3 +103,29 @@ const Gameboard = (defaultMarkType = "-") => {
     allSpacesMarked,
   };
 };
+
+const Player = (name, markType) => {
+  const getName = () => name;
+  const getMarkType = () => markType;
+  let markedSpaceNumbers = [];
+  const getMarkedSpaceNumbers = () => markedSpaceNumbers;
+  const addMarkedSpaceNumber = (number) => markedSpaceNumbers.push(number);
+  let turnsMade = 0;
+  const getTurnsMade = () => turnsMade;
+  const incrementTurnsMade = () => (turnsMade += 1);
+  const restart = () => {
+    markedSpaceNumbers = [];
+    turnsMade = 0;
+  };
+
+  return {
+    getName,
+    getMarkType,
+    getMarkedSpaceNumbers,
+    addMarkedSpaceNumber,
+    getTurnsMade,
+    incrementTurnsMade,
+    restart,
+  };
+};
+
