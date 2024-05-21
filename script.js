@@ -129,3 +129,90 @@ const Player = (name, markType) => {
   };
 };
 
+const GameController = () => {
+  const gameboard = Gameboard();
+  const user = Player("User", "X");
+  const computer = Player("Computer", "O");
+
+  const playTurn = (player, spaceNumber) => {
+    gameboard.mark(player.getMarkType(), spaceNumber);
+    player.addMarkedSpaceNumber(spaceNumber);
+    player.incrementTurnsMade();
+    console.log(
+      `Space number ${spaceNumber} is marked by ${player.getName()}.`
+    );
+    console.log(gameboard.printed());
+  };
+
+  const hasWon = (player) => {
+    if (player.getTurnsMade() >= 3) {
+      if (gameboard.checkCombination(player.getMarkedSpaceNumbers())) {
+        console.log(`Game over. ${player.getName()} has won.`);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const draw = () => {
+    if (gameboard.allSpacesMarked()) {
+      console.log("Game over. Draw.");
+      return true;
+    }
+    return false;
+  };
+
+  const mark = (userSpaceNumber) => {
+    if (isNaN(userSpaceNumber)) {
+      console.log(
+        `Invalid space number. Type "game.play()" with a valid space number from 1 to 9`
+      );
+    } else if (gameboard.spaceUnmarked(userSpaceNumber)) {
+      playTurn(user, userSpaceNumber);
+      if (hasWon(user) || draw()) {
+        return;
+      }
+
+      const computerSpaceNumber = gameboard.randomSpaceNumber();
+      playTurn(computer, computerSpaceNumber);
+      if (hasWon(computer) || draw()) {
+        return;
+      }
+    } else {
+      console.log(
+        `Space number ${userSpaceNumber} is already marked! Try another.`
+      );
+    }
+  };
+
+  const start = () => {
+    gameboard.restart();
+    user.restart();
+    computer.restart();
+
+    const players = [user, computer];
+    const firstTurnPlayer = players[Math.floor(Math.random() * players.length)];
+
+    console.log(`${firstTurnPlayer.getName()} goes first.`);
+
+    if (firstTurnPlayer === user) {
+      console.log(
+        `Type "game.mark() with a space number from 1 to 9 in the parentheses to mark the space number on the board.`
+      );
+    } else {
+      const computerSpaceNumber = gameboard.randomSpaceNumber();
+      playTurn(computer, computerSpaceNumber);
+    }
+  };
+
+  const greeting = () => {
+    console.log(
+      `Welcome to the Tic Tac Toe game!\n\n1. Type "game.start()" to start or restart the game.\n\n2. Type "game.mark() with a space number from 1 to 9 in the parentheses to mark the space number on the board.`
+    );
+  };
+  greeting();
+
+  return { start, mark };
+};
+
+const game = GameController();
