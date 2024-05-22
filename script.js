@@ -206,15 +206,15 @@ const GameController = () => {
       if (gameMode.getActive() === gameMode.getSingle()) {
         playMove(player1, spaceNumber);
         if (hasWon(player1) || draw()) {
-        return;
-      }
+          return;
+        }
 
         const player2SpaceNumber = gameBoard.randomSpaceNumber();
         playMove(player2, player2SpaceNumber);
         if (hasWon(player2) || draw()) {
-        return;
-      }
-    } else {
+          return;
+        }
+      } else {
         if (playerToMove === player1) {
           playMove(player1, spaceNumber);
           if (hasWon(player1) || draw()) {
@@ -252,6 +252,42 @@ const GameController = () => {
     } else {
       const player2SpaceNumber = gameBoard.randomSpaceNumber();
       playMove(player2, player2SpaceNumber);
+    }
+  };
+
+  const changePlayerName = (oldName, newName) => {
+    if (newName === "") {
+      console.log(`Player's name cannot be empty. Try again.`);
+    } else if (oldName === player1.getName()) {
+      player1.setName(newName);
+      console.log(`Player with "${oldName}" name renamed to "${newName}".`);
+    } else if (oldName === player2.getName()) {
+      player2.setName(newName);
+      console.log(`Player with "${oldName}" name renamed to "${newName}".`);
+    } else {
+      console.log(
+        `Player with "${oldName}" name doesn't exist. Enter valid player's name.`
+      );
+    }
+  };
+
+  const changePlayerMarker = (name, marker) => {
+    if (marker === "") {
+      console.log(`Player's marker cannot be empty. Try again.`);
+    } else if (name === player1.getName()) {
+      console.log(
+        `Player ${name}'s marker is changed from ${player1.getMarker()} to ${marker}.`
+      );
+      player1.setMarker(marker);
+    } else if (name === player2.getName()) {
+      console.log(
+        `Player ${name}'s marker is changed from ${player2.getMarker()} to ${marker}.`
+      );
+      player2.setMarker(marker);
+    } else {
+      console.log(
+        `Player with "${name}" name doesn't exist. Enter valid player's name.`
+      );
     }
   };
 
