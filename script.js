@@ -1,10 +1,13 @@
-const Gameboard = (defaultMarkType = "-") => {
+const GameBoard = () => {
   const Space = (number) => {
-    let markType = defaultMarkType;
+    const defaultMarker = "-";
+    let marker = defaultMarker;
+    const getMarker = () => marker;
+    const setMarker = (newMarker) => (marker = newMarker);
     const getNumber = () => number;
-    const getDefaultMarkType = () => defaultMarkType;
+    const getDefaultMarker = () => defaultMarker;
 
-    return { markType, getNumber, getDefaultMarkType };
+    return { getMarker, setMarker, getNumber, getDefaultMarker };
   };
 
   const spaces = 9;
@@ -26,11 +29,11 @@ const Gameboard = (defaultMarkType = "-") => {
     return arr;
   })();
 
-  const mark = (markType, spaceNumber) => {
+  const mark = (marker, spaceNumber) => {
     const targetSpace = board.find(
       (space) => space.getNumber() === spaceNumber
     );
-    targetSpace.markType = markType;
+    targetSpace.setMarker(marker);
     const spaceNumberIndex = unmarkedSpaceNumbers.indexOf(spaceNumber);
     unmarkedSpaceNumbers.splice(spaceNumberIndex, 1);
   };
@@ -40,7 +43,7 @@ const Gameboard = (defaultMarkType = "-") => {
   };
 
   const printed = () => {
-    const boardMapped = board.map((space) => space.markType);
+    const boardMapped = board.map((space) => space.getMarker());
     const columns = 3;
     let boardPrinted = "";
     for (let i = 0; i < boardMapped.length; i += columns) {
@@ -77,8 +80,8 @@ const Gameboard = (defaultMarkType = "-") => {
 
   const restart = () => {
     board.forEach((space) => {
-      if (space.markType != space.getDefaultMarkType()) {
-        space.markType = space.getDefaultMarkType();
+      if (space.getMarker() != space.getDefaultMarker()) {
+        space.setMarker(space.getDefaultMarker());
       }
     });
 
@@ -104,49 +107,77 @@ const Gameboard = (defaultMarkType = "-") => {
   };
 };
 
-const Player = (name, markType) => {
+const Player = (newName, newMarker) => {
+  let name = newName;
+  let marker = newMarker;
   const getName = () => name;
-  const getMarkType = () => markType;
+  const setName = (newName) => (name = newName);
+  const getMarker = () => marker;
+  const setMarker = (newMarker) => (marker = newMarker);
   let markedSpaceNumbers = [];
   const getMarkedSpaceNumbers = () => markedSpaceNumbers;
   const addMarkedSpaceNumber = (number) => markedSpaceNumbers.push(number);
-  let turnsMade = 0;
-  const getTurnsMade = () => turnsMade;
-  const incrementTurnsMade = () => (turnsMade += 1);
+  let movesMade = 0;
+  const getMovesMade = () => movesMade;
+  const incrementMovesMade = () => (movesMade += 1);
   const restart = () => {
     markedSpaceNumbers = [];
-    turnsMade = 0;
+    movesMade = 0;
   };
 
   return {
     getName,
-    getMarkType,
+    setName,
+    getMarker,
+    setMarker,
     getMarkedSpaceNumbers,
     addMarkedSpaceNumber,
-    getTurnsMade,
-    incrementTurnsMade,
+    getMovesMade,
+    incrementMovesMade,
     restart,
   };
 };
 
 const GameController = () => {
-  const gameboard = Gameboard();
-  const user = Player("User", "X");
-  const computer = Player("Computer", "O");
+  const GameMode = () => {
+    const single = "single";
+    const multi = "multi";
+    let active = single;
 
-  const playTurn = (player, spaceNumber) => {
-    gameboard.mark(player.getMarkType(), spaceNumber);
+    const getActive = () => active;
+    const getSingle = () => single;
+    const setSingle = () => (active = single);
+    const getMulti = () => multi;
+    const setMulti = () => (active = multi);
+
+    return {
+      getActive,
+      getSingle,
+      setSingle,
+      getMulti,
+      setMulti,
+    };
+  };
+
+  const gameBoard = GameBoard();
+  const gameMode = GameMode();
+  const player1 = Player("User", "X");
+  const player2 = Player("Computer", "O");
+  let playerToMove;
+
+  const playMove = (player, spaceNumber) => {
+    gameBoard.mark(player.getMarker(), spaceNumber);
     player.addMarkedSpaceNumber(spaceNumber);
-    player.incrementTurnsMade();
+    player.incrementMovesMade();
     console.log(
       `Space number ${spaceNumber} is marked by ${player.getName()}.`
     );
-    console.log(gameboard.printed());
+    console.log(gameBoard.printed());
   };
 
   const hasWon = (player) => {
-    if (player.getTurnsMade() >= 3) {
-      if (gameboard.checkCombination(player.getMarkedSpaceNumbers())) {
+    if (player.getMovesMade() >= 3) {
+      if (gameBoard.checkCombination(player.getMarkedSpaceNumbers())) {
         console.log(`Game over. ${player.getName()} has won.`);
         return true;
       }
@@ -155,53 +186,82 @@ const GameController = () => {
   };
 
   const draw = () => {
-    if (gameboard.allSpacesMarked()) {
+    if (gameBoard.allSpacesMarked()) {
       console.log("Game over. Draw.");
       return true;
     }
     return false;
   };
 
-  const mark = (userSpaceNumber) => {
-    if (isNaN(userSpaceNumber)) {
+  const mark = (spaceNumber) => {
+    if (isNaN(spaceNumber)) {
       console.log(
         `Invalid space number. Type "game.play()" with a valid space number from 1 to 9`
       );
-    } else if (gameboard.spaceUnmarked(userSpaceNumber)) {
-      playTurn(user, userSpaceNumber);
-      if (hasWon(user) || draw()) {
+    } else if (!gameBoard.spaceUnmarked(spaceNumber)) {
+      console.log(
+        `Space number ${spaceNumber} is already marked! Try another.`
+      );
+    } else {
+      if (gameMode.getActive() === gameMode.getSingle()) {
+        playMove(player1, spaceNumber);
+        if (hasWon(player1) || draw()) {
         return;
       }
 
-      const computerSpaceNumber = gameboard.randomSpaceNumber();
-      playTurn(computer, computerSpaceNumber);
-      if (hasWon(computer) || draw()) {
+        const player2SpaceNumber = gameBoard.randomSpaceNumber();
+        playMove(player2, player2SpaceNumber);
+        if (hasWon(player2) || draw()) {
         return;
       }
     } else {
-      console.log(
-        `Space number ${userSpaceNumber} is already marked! Try another.`
-      );
+        if (playerToMove === player1) {
+          playMove(player1, spaceNumber);
+          if (hasWon(player1) || draw()) {
+            return;
+          }
+          playerToMove = player2;
+        } else {
+          playMove(player2, spaceNumber);
+          if (hasWon(player2) || draw()) {
+            return;
+          }
+          playerToMove = player1;
+        }
+      }
     }
   };
 
   const start = () => {
-    gameboard.restart();
-    user.restart();
-    computer.restart();
+    gameBoard.restart();
+    player1.restart();
+    player2.restart();
 
-    const players = [user, computer];
-    const firstTurnPlayer = players[Math.floor(Math.random() * players.length)];
+    const players = [player1, player2];
+    playerToMove = players[Math.floor(Math.random() * players.length)];
 
-    console.log(`${firstTurnPlayer.getName()} goes first.`);
+    console.log(`${playerToMove.getName()} goes first.`);
 
-    if (firstTurnPlayer === user) {
+    if (
+      playerToMove === player1 ||
+      gameMode.getActive() === gameMode.getMulti()
+    ) {
       console.log(
         `Type "game.mark() with a space number from 1 to 9 in the parentheses to mark the space number on the board.`
       );
     } else {
-      const computerSpaceNumber = gameboard.randomSpaceNumber();
-      playTurn(computer, computerSpaceNumber);
+      const player2SpaceNumber = gameBoard.randomSpaceNumber();
+      playMove(player2, player2SpaceNumber);
+    }
+  };
+
+  const changeGameMode = () => {
+    if (gameMode.getActive() === gameMode.getSingle()) {
+      gameMode.setMulti();
+      console.log(`Game mode is changed to 2 players.`);
+    } else {
+      gameMode.setSingle();
+      console.log(`Game mode is changed to 1 player.`);
     }
   };
 
@@ -212,7 +272,7 @@ const GameController = () => {
   };
   greeting();
 
-  return { start, mark };
+  return { start, mark, changePlayerName, changePlayerMarker, changeGameMode };
 };
 
 const game = GameController();
